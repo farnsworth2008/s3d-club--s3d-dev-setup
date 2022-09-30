@@ -1,0 +1,227 @@
+#!/bin/bash
+# THIS SCRIPT IS SOURCED SO WE CAN NOT USE "set -e"
+
+V_KUBECTL=${V_KUBECTL:-1.23.7}
+
+cd "$HOME"
+mkdir -p .s3d/logs
+
+echo -e ""
+echo -e "**************************************"
+echo -e "* PLEASE WAIT; INSTALLING S3D $S3D_SETUP_REF"
+echo -e "*"
+echo -e "* SETUP WILL TAKE ABOUT 10 MINUTES"
+echo -e "**************************************"
+echo -e ""
+
+# A small format helper
+step_n=0
+step() {
+  if [[ $step_n != 0 ]]; then
+    echo "└────[${SECONDS}s - $step_name]"$'\n';
+  fi
+  if [ -n "$1" ]; then
+    step_n=$(( step_n + 1 ))
+    echo "┌─[STEP $step_n: $2 ($1)]";
+    SECONDS=0
+    step_name="$2"
+  fi
+}
+
+step 20s moreutils; {
+  sudo amazon-linux-extras install -y epel
+  sudo yum install -y moreutils
+} > .s3d/logs/moreutils.log 2>&1
+
+step 30s firefox; {
+  sudo amazon-linux-extras install -y firefox
+} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+
+step 30s vscode; {
+  sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
+  s="[code]\n"
+  s="$s""name=Visual Studio Code\n"
+  s="$s""baseurl=https://packages.microsoft.com/yumrepos/vscode\n"
+  s="$s""enabled=1\n"
+  s="$s""gpgcheck=1\n"
+  s="$s""gpgkey=https://packages.microsoft.com/keys/microsoft.asc\n"
+  sudo echo -e "$s" \
+    | sudo tee /etc/yum.repos.d/vscode.repo \
+    > /dev/null
+  sudo yum update -y
+  sudo yum install -y code
+} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+
+step 30s yum; {
+  sudo yum install -y \
+    docker \
+    git \
+    go \
+    jq \
+    ncurses-devel \
+    postgresql \
+    socat \
+    tigervnc-server
+} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+
+step 10s aws; {
+  curl "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip" \
+    -o awscliv2.zip
+  unzip -q awscliv2.zip
+  sudo ./aws/install
+  rm -rf aws awscliv2.zip
+} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+
+step 10s tig; {
+  git clone --depth=1 https://github.com/jonas/tig.git
+  (cd tig && make && make install)
+} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+
+step 5s tfenv; {
+  echo '$info Cloning TFENV'
+  git clone --depth=1 'https://github.com/tfutils/tfenv.git' .tfenv
+  tfenv use latest
+} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+
+step 5s node; {
+  curl -o- 'https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh' \
+    | bash
+  . ~/.nvm/nvm.sh
+  nvm install --lts
+} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+
+step 45s go; {
+  go install golang.org/x/tools/gopls@latest
+} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+
+step 5s docker ; {
+  sudo systemctl enable docker
+  sudo service docker start
+  sudo chmod 777 /var/run/docker.sock
+  sudo usermod -a -G docker $(whoami)
+} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+
+step 1s git-config; {
+  {
+    echo -e "[advice]"
+    echo -e "\t""detachedHead = false"
+    echo -e "[core]"
+    echo -e "\t""excludesFile = ~/.gitignore"
+    echo -e "[merge]"
+    echo -e "\t""conflictstyle = diff3"
+    echo -e "[pull]"
+    echo -e "\t""rebase = false"
+    echo -e "[push]"
+    echo -e "\t""autoSetupRemote = true"
+  } > .gitconfig
+  echo '$info Adjuesting ~/.gitignore'
+  {
+    echo -e "*.swp"
+    echo -e "*.tmp"
+    echo -e "*.tmp.*"
+  } >> .gitignore
+} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+
+step 1s screen; {
+  echo '$info Getting ".screenrc"'
+  wget "https://raw.githubusercontent.com/s3d-club/s3d-dev-setup/${S3D_SETUP_REF}/.screenrc"
+} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+
+step 1s ssh; {
+  mkdir -p .ssh
+  (
+    # In this subshell, work in .ssh
+    cd .ssh
+
+    # Create an RSA ID
+    ssh-keygen -f id_rsa -q -t rsa -N ''
+    cat id_rsa.pub >> authorized_keys
+
+    # Create PEM
+    ssh-keygen -b 2048 -f pem -t rsa -N ''
+    cat pem.pub >> authorized_keys
+
+    # Write our .ssh/config
+    {
+      echo -e 'Host *'
+      echo -e '  IdentityFile ~/.ssh/id_rsa'
+    } > config
+
+    # Copy our ID to our HOME so we can distribute it later
+    cp pem "../$(whoami).pem"
+  )
+} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+
+step 1s s3d; {
+  mkdir -p .s3d
+  git clone --recurse-submodules \
+    https://github.com/s3d-club/s3d-scripts.git \
+    ./.s3d/scripts
+  echo 'export S3D_N=$(( S3D_N + 1 )); PS1="$S3D_N\$ "' >> $HOME/.bashrc
+} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+
+step 1s tigervnc; {
+  sudo mkdir /etc/tigervnc
+  sudo bash -c 'echo localhost > /etc/tigervnc/vncserver-config-mandatory'
+  sudo cp /lib/systemd/system/vncserver@.service /etc/systemd/system/vncserver@.service
+  myname=$(whoami)
+  sudo sed -i "s/<USER>/$myname/" /etc/systemd/system/vncserver@.service
+  sudo sed -i 's/#AllowTcpForwarding yes/AllowTcpForwarding yes/' /etc/ssh/sshd_config
+  sudo systemctl daemon-reload
+  sudo systemctl enable vncserver@:1
+  sudo systemctl start vncserver@:1
+} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+
+step 1s kubectl; {
+  (
+    cd "$HOME/bin"
+    eks_url='https://s3.us-west-2.amazonaws.com/amazon-eks'
+    curl -o kubectl "$eks_url/$V_KUBECTL/2022-06-29/bin/linux/arm64/kubectl"
+    chmod +x kubectl
+    echo 'source <($HOME/bin/kubectl completion bash)' >> $HOME/.bashrc
+  )
+} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+
+step 240s vim; {
+  mkdir -p .vim/pack/plugins/start
+  git clone 'https://github.com/fatih/vim-go.git' \
+    '.vim/pack/plugins/start/vim-go'
+  (
+    cd .vim/pack/plugins/start/vim-go
+    git checkout "$(
+    git tag -l --sort version:refname \
+    | grep -v rc \
+    | tail -1
+    )"
+  )
+  git clone --depth=1 'https://github.com/hashivim/vim-terraform.git' \
+    '.vim/pack/plugins/start/vim-terraform'
+  wget "https://raw.githubusercontent.com/s3d-club/s3d-dev-setup/${S3D_SETUP_REF}/.vimrc"
+  vim -c 'GoInstallBinaries' -c 'q'
+} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+
+# This final call for step is needed to report the time of the last step
+step
+
+echo -e "************************"
+echo -e "* COMPLETED S3D SETUP!"
+echo -e "*   $S3D_SETUP_REF"
+echo -e "************************"
+echo -e ""
+echo -e "**********************************************"
+echo -e "* WELCOME TO S3D DEVLOPMENT                  *"
+echo -e "*                                            *"
+echo -e "* You should run the \"screen -R\" command     *"
+echo -e "* now. If you are not familar with screen    *"
+echo -e "* visit https://go.s3d.club/screen           *"
+echo -e "*                                            *"
+echo -e "* To setup your credentials for Git run the  *"
+echo -e "* \"s3d-git-init\" script.                     *"
+echo -e "*                                            *"
+echo -e "* EXAMPLE:                                   *"
+echo -e "*   s3d-git-init 'John Doe' 'doe@s3d.club'   *"
+echo -e "*                                            *"
+echo -e "* Welcome to the club, we are glad you are   *"
+echo -e "* here!                                      *"
+echo -e "**********************************************"
+echo -e ""

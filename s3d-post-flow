@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e
+
+v=$(git describe)
+
+s3d-flow-down() {
+  sed -i "s/.* # from dev-setup.*$/  default = \"$v\" # from dev-setup/" variables.tf
+  s3d-flow
+}
+
+(cd ../aws-ec2 && s3d-flow-down)

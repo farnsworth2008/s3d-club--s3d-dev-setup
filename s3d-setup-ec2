@@ -146,6 +146,7 @@ step 1s ssh; {
       echo -e 'Host *'
       echo -e '  IdentityFile ~/.ssh/id_rsa'
     } > config
+    chmod 400 config
 
     # Copy our ID to our HOME so we can distribute it later
     cp pem "../$(whoami).pem"
@@ -209,7 +210,7 @@ echo -e "*   $S3D_SETUP_REF"
 echo -e "************************"
 echo -e ""
 echo -e "**********************************************"
-echo -e "* WELCOME TO S3D DEVLOPMENT                  *"
+echo -e "* WELCOME TO THE S3D CLUB!                   *"
 echo -e "*                                            *"
 echo -e "* You should run the \"screen -R\" command     *"
 echo -e "* now. If you are not familar with screen    *"

@@ -59,7 +59,7 @@ step 30s yum; {
     go \
     jq \
     ncurses-devel \
-    postgresql \
+    postgresql13 \
     socat \
     tigervnc-server
 } 2>&1 | cat > .s3d/logs/step-${step_n}.log

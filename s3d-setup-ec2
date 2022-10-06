@@ -33,10 +33,6 @@ step 20s moreutils; {
   sudo yum install -y moreutils
 } > .s3d/logs/moreutils.log 2>&1
 
-step 30s firefox; {
-  sudo amazon-linux-extras install -y firefox
-} 2>&1 | cat > .s3d/logs/step-${step_n}.log
-
 step 30s vscode; {
   sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
   s="[code]\n"

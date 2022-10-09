@@ -8,3 +8,6 @@ Recently completed and planned work is tracked here.
 - Fixed duplicated line in `.vimrc`
 - Fixed incorrect `postgresql13`
 - Removed tigervnc
+
+## [0.1.5](.)
+- Updated `CODE-OF-CONDUCT.md`

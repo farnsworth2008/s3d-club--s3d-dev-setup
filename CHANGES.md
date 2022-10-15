@@ -10,3 +10,6 @@ Recently completed and planned work is tracked here.
 ## [0.1.9](.)
 - Fixed postgresql install
 - Added `tfsec` to setup
+
+## [0.1.10](.)
+- Fixed `tfsec` url

@@ -1,15 +1,8 @@
 # Changes
 Recently completed and planned work is tracked here.
 
-## [0.0.0](.) to [0.1.7](.)
+## [0.0.0](.) to [0.1.10](.)
 - Created first versions
 
-## [0.1.8](.)
-- Fixed typo in `README.md`
-
-## [0.1.9](.)
-- Fixed postgresql install
-- Added `tfsec` to setup
-
-## [0.1.10](.)
-- Fixed `tfsec` url
+## [0.1.11](.)
+- Fixed tfsec curl command

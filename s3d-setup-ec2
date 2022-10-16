@@ -172,8 +172,8 @@ step 1s postgresql; {
 
 step 1s tfsec; {
   V_TFSEC="v1.28.0"
-  curl "https://github.com/aquasecurity/tfsec/releases/download/$V_TFSEC/tfsec-linux-arm64" \
-    -o "$HOME/bin/tfsec"
+  URL_TFSEC="https://github.com/aquasecurity/tfsec/releases/download"
+  curl -L "$URL_TFSEC/$V_TFSEC/tfsec-linux-arm64" -o "$HOME/bin/tfsec"
   chmod +x "$HOME/bin/tfsec"
 } 2>&1 | cat > .s3d/logs/step-${step_n}.log
 

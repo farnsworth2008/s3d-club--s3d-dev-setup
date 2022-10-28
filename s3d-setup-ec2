@@ -186,6 +186,14 @@ step 1s tflint; {
   curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
 } 2>&1 | cat > .s3d/logs/step-${step_n}.log
 
+step 1s terraform-docs; {
+  V_TF_DOCS='0.16.0'
+  curl -sSLo ./terraform-docs.tar.gz "https://terraform-docs.io/dl/v$V_TF_DOCS/terraform-docs-v$V_TF_DOCS-$(uname)-arm64.tar.gz"
+  tar -xzf terraform-docs.tar.gz
+  chmod +x terraform-docs
+  mv terraform-docs "$HOME/bin/terraform-docs"
+} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+
 step 240s vim; {
   mkdir -p .vim/pack/plugins/start
   git clone 'https://github.com/fatih/vim-go.git' \

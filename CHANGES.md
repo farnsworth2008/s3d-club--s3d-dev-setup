@@ -9,3 +9,6 @@ Recently completed and planned work is tracked here.
 
 ## [0.1.14](.)
 - Added `tflint`
+
+## [0.1.15](.)
+- Added `terraform-docs`

@@ -182,6 +182,10 @@ step 1s inotify; {
   | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
 } 2>&1 | cat > .s3d/logs/step-${step_n}.log
 
+step 1s tflint; {
+  curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+
 step 240s vim; {
   mkdir -p .vim/pack/plugins/start
   git clone 'https://github.com/fatih/vim-go.git' \

@@ -12,3 +12,6 @@ Recently completed and planned work is tracked here.
 
 ## [0.1.15](.)
 - Added `terraform-docs`
+
+## [0.1.16](.)
+- Created a `V_` section at top of script

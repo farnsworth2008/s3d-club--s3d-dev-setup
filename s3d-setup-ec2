@@ -1,7 +1,11 @@
 #!/bin/bash
 # THIS SCRIPT IS SOURCED SO WE CAN NOT USE "set -e"
 
-V_KUBECTL=${V_KUBECTL:-1.23.7}
+# This script install the following versions
+V_KUBECTL='1.25.33'
+v_NVM='0.34.0'
+V_TF_DOCS='0.16.0'
+V_TFSEC="v1.28.0"
 
 cd "$HOME"
 mkdir -p .s3d/logs
@@ -60,8 +64,7 @@ step 30s yum; {
 } 2>&1 | cat > .s3d/logs/step-${step_n}.log
 
 step 10s aws; {
-  curl "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip" \
-    -o awscliv2.zip
+  curl "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip" -o awscliv2.zip
   unzip -q awscliv2.zip
   sudo ./aws/install
   rm -rf aws awscliv2.zip
@@ -79,7 +82,7 @@ step 5s tfenv; {
 } 2>&1 | cat > .s3d/logs/step-${step_n}.log
 
 step 5s node; {
-  curl -o- 'https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh' \
+  curl -o- 'https://raw.githubusercontent.com/nvm-sh/nvm/v$V_NVM/install.sh' \
     | bash
   . ~/.nvm/nvm.sh
   nvm install --lts
@@ -171,7 +174,6 @@ step 1s postgresql; {
 } 2>&1 | cat > .s3d/logs/step-${step_n}.log
 
 step 1s tfsec; {
-  V_TFSEC="v1.28.0"
   URL_TFSEC="https://github.com/aquasecurity/tfsec/releases/download"
   curl -L "$URL_TFSEC/$V_TFSEC/tfsec-linux-arm64" -o "$HOME/bin/tfsec"
   chmod +x "$HOME/bin/tfsec"
@@ -187,7 +189,6 @@ step 1s tflint; {
 } 2>&1 | cat > .s3d/logs/step-${step_n}.log
 
 step 1s terraform-docs; {
-  V_TF_DOCS='0.16.0'
   curl -sSLo ./terraform-docs.tar.gz "https://terraform-docs.io/dl/v$V_TF_DOCS/terraform-docs-v$V_TF_DOCS-$(uname)-arm64.tar.gz"
   tar -xzf terraform-docs.tar.gz
   chmod +x terraform-docs

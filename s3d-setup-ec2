@@ -3,9 +3,9 @@
 
 # This script install the following versions
 V_KUBECTL='1.25.33'
-v_NVM='0.34.0'
+v_NVM='0.39.2'
 V_TF_DOCS='0.16.0'
-V_TFSEC="v1.28.0"
+V_TFSEC="v1.28.1"
 
 cd "$HOME"
 mkdir -p .s3d/logs

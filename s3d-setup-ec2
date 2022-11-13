@@ -2,7 +2,7 @@
 # THIS SCRIPT IS SOURCED SO WE CAN NOT USE "set -e"
 
 # This script install the following versions
-V_KUBECTL='1.25.33'
+V_KUBECTL='1.25.4'
 v_NVM='0.39.2'
 V_TF_DOCS='0.16.0'
 V_TFSEC="v1.28.1"
@@ -50,7 +50,7 @@ step 30s vscode; {
     > /dev/null
   sudo yum update -y
   sudo yum install -y code
-} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+} 2>&1 | cat > ".s3d/logs/step-${step_n}.log"
 
 step 30s yum; {
   sudo yum install -y \
@@ -61,43 +61,43 @@ step 30s yum; {
     ncurses-devel \
     socat \
     tigervnc-server
-} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+} 2>&1 | cat > ".s3d/logs/step-${step_n}.log"
 
 step 10s aws; {
   curl "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip" -o awscliv2.zip
   unzip -q awscliv2.zip
   sudo ./aws/install
   rm -rf aws awscliv2.zip
-} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+} 2>&1 | cat > ".s3d/logs/step-${step_n}.log"
 
 step 10s tig; {
-  git clone --depth=1 https://github.com/jonas/tig.git
+  git clone --depth=1 'https://github.com/jonas/tig.git'
   (cd tig && make && make install)
-} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+} 2>&1 | cat > ".s3d/logs/step-${step_n}.log"
 
 step 5s tfenv; {
   echo '$info Cloning TFENV'
   git clone --depth=1 'https://github.com/tfutils/tfenv.git' .tfenv
   tfenv use latest
-} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+} 2>&1 | cat > ".s3d/logs/step-${step_n}.log"
 
 step 5s node; {
   curl -o- 'https://raw.githubusercontent.com/nvm-sh/nvm/v$V_NVM/install.sh' \
     | bash
   . ~/.nvm/nvm.sh
   nvm install --lts
-} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+} 2>&1 | cat > ".s3d/logs/step-${step_n}.log"
 
 step 45s go; {
   go install golang.org/x/tools/gopls@latest
-} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+} 2>&1 | cat > ".s3d/logs/step-${step_n}.log"
 
 step 5s docker ; {
   sudo systemctl enable docker
   sudo service docker start
   sudo chmod 777 /var/run/docker.sock
   sudo usermod -a -G docker $(whoami)
-} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+} 2>&1 | cat > ".s3d/logs/step-${step_n}.log"
 
 step 1s git-config; {
   {
@@ -118,12 +118,12 @@ step 1s git-config; {
     echo -e "*.tmp"
     echo -e "*.tmp.*"
   } >> .gitignore
-} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+} 2>&1 | cat > ".s3d/logs/step-${step_n}.log"
 
 step 1s screen; {
   echo '$info Getting ".screenrc"'
   wget "https://raw.githubusercontent.com/s3d-club/s3d-dev-setup/${S3D_SETUP_REF}/.screenrc"
-} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+} 2>&1 | cat > ".s3d/logs/step-${step_n}.log"
 
 step 1s ssh; {
   mkdir -p .ssh
@@ -149,58 +149,56 @@ step 1s ssh; {
     # Copy our ID to our HOME so we can distribute it later
     cp pem "../$(whoami).pem"
   )
-} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+} 2>&1 | cat > ".s3d/logs/step-${step_n}.log"
 
 step 1s s3d; {
-  mkdir -p .s3d
   git clone --recurse-submodules \
-    https://github.com/s3d-club/s3d-scripts.git \
+    'https://github.com/s3d-club/s3d-scripts.git' \
     ./.s3d/scripts
   echo 'export S3D_N=$(( S3D_N + 1 )); PS1="$S3D_N\$ "' >> $HOME/.bashrc
-} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+} 2>&1 | cat > ".s3d/logs/step-${step_n}.log"
 
 step 1s kubectl; {
   (
     cd "$HOME/bin"
-    eks_url='https://s3.us-west-2.amazonaws.com/amazon-eks'
-    curl -o kubectl "$eks_url/$V_KUBECTL/2022-06-29/bin/linux/arm64/kubectl"
+    curl -sLO "https://dl.k8s.io/release/v$V_KUBECTL/bin/linux/arm64/kubectl"
     chmod +x kubectl
     echo 'source <($HOME/bin/kubectl completion bash)' >> $HOME/.bashrc
   )
-} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+} 2>&1 | cat > ".s3d/logs/step-${step_n}.log"
 
 step 1s postgresql; {
   sudo amazon-linux-extras install -y postgresql13
-} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+} 2>&1 | cat > ".s3d/logs/step-${step_n}.log"
 
 step 1s tfsec; {
   URL_TFSEC="https://github.com/aquasecurity/tfsec/releases/download"
-  curl -L "$URL_TFSEC/$V_TFSEC/tfsec-linux-arm64" -o "$HOME/bin/tfsec"
+  curl -sL "$URL_TFSEC/$V_TFSEC/tfsec-linux-arm64" -o "$HOME/bin/tfsec"
   chmod +x "$HOME/bin/tfsec"
-} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+} 2>&1 | cat > ".s3d/logs/step-${step_n}.log"
 
 step 1s inotify; {
-  echo fs.inotify.max_user_watches=524288 \
-  | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
-} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+  echo 'fs.inotify.max_user_watches=524288' \
+  | sudo tee -a '/etc/sysctl.conf' && sudo sysctl -p
+} 2>&1 | cat > ".s3d/logs/step-${step_n}.log"
 
 step 1s tflint; {
-  curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+  curl -s 'https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh' | bash
+} 2>&1 | cat > ".s3d/logs/step-${step_n}.log"
 
 step 1s terraform-docs; {
-  curl -sSLo ./terraform-docs.tar.gz "https://terraform-docs.io/dl/v$V_TF_DOCS/terraform-docs-v$V_TF_DOCS-$(uname)-arm64.tar.gz"
-  tar -xzf terraform-docs.tar.gz
-  chmod +x terraform-docs
+  curl -sSLo './terraform-docs.tar.gz' "https://terraform-docs.io/dl/v$V_TF_DOCS/terraform-docs-v$V_TF_DOCS-$(uname)-arm64.tar.gz"
+  tar -xzf 'terraform-docs.tar.gz'
+  chmod +x 'terraform-docs'
   mv terraform-docs "$HOME/bin/terraform-docs"
-} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+} 2>&1 | cat > ".s3d/logs/step-${step_n}.log"
 
 step 240s vim; {
-  mkdir -p .vim/pack/plugins/start
+  mkdir -p '.vim/pack/plugins/start'
   git clone 'https://github.com/fatih/vim-go.git' \
     '.vim/pack/plugins/start/vim-go'
   (
-    cd .vim/pack/plugins/start/vim-go
+    cd '.vim/pack/plugins/start/vim-go'
     git checkout "$(
     git tag -l --sort version:refname \
     | grep -v rc \
@@ -211,7 +209,7 @@ step 240s vim; {
     '.vim/pack/plugins/start/vim-terraform'
   wget "https://raw.githubusercontent.com/s3d-club/s3d-dev-setup/${S3D_SETUP_REF}/.vimrc"
   vim -c 'GoInstallBinaries' -c 'q'
-} 2>&1 | cat > .s3d/logs/step-${step_n}.log
+} 2>&1 | cat > ".s3d/logs/step-${step_n}.log"
 
 # This final call for step is needed to report the time of the last step
 step

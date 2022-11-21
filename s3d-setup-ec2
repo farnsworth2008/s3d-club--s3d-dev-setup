@@ -151,20 +151,26 @@ step 1s ssh; {
   )
 } 2>&1 | cat > ".s3d/logs/step-${step_n}.log"
 
-step 1s s3d; {
-  git clone --recurse-submodules \
-    'https://github.com/s3d-club/s3d-scripts.git' \
-    ./.s3d/scripts
-  echo 'export S3D_N=$(( S3D_N + 1 )); PS1="$S3D_N\$ "' >> $HOME/.bashrc
-} 2>&1 | cat > ".s3d/logs/step-${step_n}.log"
-
 step 1s kubectl; {
   (
     cd "$HOME/bin"
     curl -sLO "https://dl.k8s.io/release/v$V_KUBECTL/bin/linux/arm64/kubectl"
     chmod +x kubectl
-    echo 'source <($HOME/bin/kubectl completion bash)' >> $HOME/.bashrc
   )
+} 2>&1 | cat > ".s3d/logs/step-${step_n}.log"
+
+step 1s bashrc; {
+  git clone --recurse-submodules \
+    'https://github.com/s3d-club/s3d-scripts.git' \
+    ./.s3d/scripts
+  {
+    echo ''
+    echo '# Added by S3D Setup'
+    echo 'export HUSKY_SKIP_INSTALL=1'
+    echo 'export S3D_N=$(( S3D_N + 1 )); PS1="$S3D_N\$ "'
+    echo 'source <($HOME/bin/kubectl completion bash)'
+    echo ''
+  } >> $HOME/.bashrc
 } 2>&1 | cat > ".s3d/logs/step-${step_n}.log"
 
 step 1s postgresql; {

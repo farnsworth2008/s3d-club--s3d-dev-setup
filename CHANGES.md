@@ -16,5 +16,5 @@ This file describes the project history as it relates to tagged versions.
 - Fixed `kubectl` setup
 - Improved `s3d-setup-ec2` script quoting
 
-## [0.1.21](.)
+## [0.1.21](.) to [0.1.22](.)
 - Updated docs

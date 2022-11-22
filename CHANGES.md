@@ -11,9 +11,10 @@ This file describes the project history as it relates to tagged versions.
 - Created a `V_` section at top of script
 - Updated versions
 
-## [0.1.19](.)
+## [0.1.19](.) to [0.1.20](.)
+- Consolidated `bashrc` scripting into a single step
 - Fixed `kubectl` setup
 - Improved `s3d-setup-ec2` script quoting
 
-## [0.1.20](.)
-- Consolidated `bashrc` scripting
+## [0.1.21](.)
+- Updated docs
